@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Phone</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
+html,body{height:100%;background:#000;overflow:hidden;overscroll-behavior:none;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;color:#fff;-webkit-user-select:none;user-select:none}
+body{display:flex;align-items:center;justify-content:center}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+input{font:inherit;color:inherit;border:0;outline:0;background:none}
+#phone{position:relative;width:100%;height:100dvh;max-width:430px;overflow:hidden;background:#000}
+@media(min-width:500px){#phone{height:min(100dvh,880px);border-radius:46px;box-shadow:0 0 0 10px #1b1b1d,0 30px 80px rgba(0,0,0,.6)}}
+.screen{position:absolute;inset:0;display:none;overflow:hidden}
+.screen.on{display:flex;flex-direction:column}
+.screen.pop{animation:pop .28s cubic-bezier(.2,.8,.2,1)}
+@keyframes pop{from{transform:scale(.94);opacity:0}to{transform:none;opacity:1}}
+.wp{position:absolute;inset:0;background-size:cover;background-position:center;z-index:0}
+.sb{position:absolute;top:0;left:0;right:0;height:46px;padding:14px 28px 0;display:flex;justify-content:space-between;font-size:15px;font-weight:600;z-index:60;pointer-events:none}
+.sb .r{display:flex;gap:6px;align-items:center;font-size:12px}
+.bat{width:24px;height:12px;border:1.5px solid currentColor;border-radius:4px;position:relative;opacity:.9}
+.bat::after{content:"";position:absolute;inset:1.5px;right:5px;background:currentColor;border-radius:1.5px}
+.hb{position:absolute;left:0;right:0;bottom:0;height:30px;display:flex;align-items:flex-end;justify-content:center;padding-bottom:8px;z-index:70;cursor:pointer}
+.hb::after{content:"";width:134px;height:5px;border-radius:3px;background:#fff}
+.hb.d::after{background:#000}
+.av{border-radius:50%;overflow:hidden;background:linear-gradient(135deg,#c9b6ff,#8ec5ff);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;flex:none}
+.av img{width:100%;height:100%;object-fit:cover}
+.glass{background:rgba(255,255,255,.24);-webkit-backdrop-filter:blur(24px) saturate(1.6);backdrop-filter:blur(24px) saturate(1.6)}
+.grow{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch}
+svg{display:block}
+
+/* lock */
+#lock{z-index:30;touch-action:none;color:#fff;transition:transform .35s cubic-bezier(.3,.8,.3,1)}
+#lock .lt{position:relative;z-index:1;text-align:center;margin-top:74px;text-shadow:0 1px 12px rgba(0,0,0,.18)}
+#lock .d{font-size:19px;font-weight:500;opacity:.92}
+#lock .t{font-size:92px;font-weight:600;letter-spacing:-2px;line-height:1.05;margin-top:2px}
+#lock .btm{position:absolute;bottom:60px;left:36px;right:36px;display:flex;justify-content:space-between;z-index:1}
+#lock .cir{width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+#lock .hint{position:absolute;bottom:42px;left:0;right:0;text-align:center;font-size:0}
+#lock .hb{height:44px}
+
+/* home */
+#home{color:#fff}
+#home .wg{position:relative;z-index:1;display:flex;gap:12px;padding:58px 16px 0}
+.w{flex:1;height:150px;border-radius:24px;padding:14px 15px;display:flex;flex-direction:column;overflow:hidden}
+.w .pl{font-size:14px;font-weight:600}
+.w .tp{font-size:40px;font-weight:300;line-height:1.1;margin-top:2px}
+.w .ds{margin-top:auto;font-size:13px;font-weight:600}
+.w .hl{font-size:13px;opacity:.85}
+.w .hd2{font-size:13px;font-weight:700;color:#ff6b6b;margin-bottom:8px;text-shadow:0 0 1px rgba(0,0,0,.1)}
+.ev{display:flex;gap:8px;margin-bottom:10px;align-items:stretch}
+.ev i{width:3px;border-radius:2px;background:#ffd60a;flex:none}
+.ev b{display:block;font-size:13px;line-height:1.25;font-weight:600}
+.ev span{font-size:11.5px;opacity:.85}
+.grid{position:relative;z-index:1;display:grid;grid-template-columns:repeat(4,1fr);gap:20px 0;padding:26px 10px 0}
+.ic{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:11.5px;font-weight:500;text-shadow:0 1px 4px rgba(0,0,0,.35);cursor:pointer}
+.ic .i{width:60px;height:60px;border-radius:15px;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(0,0,0,.2);font-size:28px}
+.ic .i svg{width:32px;height:32px}
+.ic:active .i{filter:brightness(.8)}
+.dock{position:relative;z-index:1;margin:auto 12px 36px;height:92px;border-radius:34px;display:flex;justify-content:space-around;align-items:center;padding:0 6px}
+
+/* phone app */
+#phoneapp{background:#f2f2f7;color:#000}
+#phoneapp .top{padding:52px 16px 6px;display:flex;justify-content:space-between;align-items:center;color:#007aff;font-size:17px}
+#phoneapp .seg{display:flex;background:#e3e3e8;border-radius:9px;padding:2px;font-size:13px;font-weight:600;color:#000}
+#phoneapp .seg span{padding:5px 18px;border-radius:7px}
+#phoneapp .seg .a{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+#phoneapp h1{font-size:34px;font-weight:700;padding:6px 16px 10px;letter-spacing:-.5px}
+.cg{font-size:13px;color:#6d6d72;padding:12px 20px 6px}
+.cl{background:#fff;margin:0 16px;border-radius:12px;overflow:hidden}
+.cr{display:flex;align-items:center;padding:10px 14px;position:relative}
+.cr+.cr::before{content:"";position:absolute;top:0;left:14px;right:0;border-top:.5px solid #d1d1d6}
+.cr .m{flex:1;min-width:0}
+.cr .n{font-size:17px;font-weight:500}
+.cr .n.red{color:#ff3b30}
+.cr .s{font-size:13px;color:#8e8e93;margin-top:1px}
+.cr .tm{font-size:15px;color:#8e8e93;margin-right:12px}
+.cr .inf{width:22px;height:22px;border:1.5px solid #007aff;border-radius:50%;color:#007aff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;font-family:Georgia,serif;font-style:italic}
+.tabs{flex:none;display:flex;justify-content:space-around;padding:8px 0 30px;background:rgba(249,249,249,.94);border-top:.5px solid #cfcfd4;-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px)}
+.tabs div{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10px;color:#8e8e93;width:25%}
+.tabs div b{font-size:22px;line-height:1.1;font-weight:400}
+.tabs .a{color:#007aff}
+
+/* kakao */
+#kakao{background:#fff;color:#000}
+.kh{padding:54px 18px 8px;display:flex;justify-content:space-between;align-items:center}
+.kh h1{font-size:21px;font-weight:700}
+.kh .ico{display:flex;gap:18px;font-size:18px;color:#222}
+.ksr{margin:4px 16px 8px;height:36px;border-radius:10px;background:#f2f2f2;color:#999;font-size:14px;display:flex;align-items:center;padding:0 12px}
+.kr{display:flex;align-items:center;gap:12px;padding:9px 18px}
+.kr .nm{font-size:15px;font-weight:500}
+.kr .st{font-size:12px;color:#8a8a8a;margin-top:2px}
+.kr.me .av{border-radius:20px}
+.kr .av{border-radius:18px}
+.ksec{font-size:12px;color:#8a8a8a;padding:8px 18px 4px;border-top:.5px solid #eee;margin-top:6px}
+.ktab{flex:none;display:flex;justify-content:space-around;padding:8px 0 32px;border-top:.5px solid #e5e5e5;background:#fff}
+.ktab div{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10px;color:#aaa;width:20%}
+.ktab div b{font-size:20px;font-weight:400;line-height:1.2}
+.ktab .a{color:#000}
+#kprofile{z-index:40;background:linear-gradient(180deg,#5b6572,#2b2f36);color:#fff;align-items:center;text-align:center;transform:translateY(100%);transition:transform .3s cubic-bezier(.3,.8,.3,1);display:flex}
+#kprofile.on{transform:none}
+#kprofile .x{position:absolute;top:54px;left:18px;font-size:26px}
+#kprofile .big{margin-top:auto}
+#kprofile .pn{font-size:22px;font-weight:700;margin-top:16px}
+#kprofile .ps{font-size:14px;opacity:.85;margin-top:8px}
+#kprofile .ac{margin:40px 0 60px;display:flex;gap:44px;padding-top:18px;border-top:.5px solid rgba(255,255,255,.2);width:84%;justify-content:center;font-size:12px}
+#kprofile .ac div{display:flex;flex-direction:column;align-items:center;gap:6px}
+#kprofile .ac b{font-size:22px;font-weight:400}
+#kchat{background:#b2c7d9;color:#000}
+.ch{flex:none;padding:50px 14px 10px;display:flex;align-items:center;gap:10px;background:rgba(178,199,217,.96);font-size:17px;font-weight:600}
+.ch .bk{font-size:28px;line-height:1;font-weight:300;padding:0 6px 4px}
+.ch .rt{margin-left:auto;display:flex;gap:16px;font-size:17px;font-weight:400}
+.cdate{align-self:center;margin:12px 0;background:rgba(0,0,0,.16);color:#fff;font-size:11.5px;padding:4px 14px;border-radius:12px}
+.msgs{padding:4px 12px 12px;display:flex;flex-direction:column;gap:7px}
+.mr{display:flex;align-items:flex-end;gap:5px;max-width:100%}
+.mr.mine{justify-content:flex-end}
+.mr .bb{max-width:68%;padding:8px 11px;border-radius:14px;font-size:14.5px;line-height:1.4;word-break:break-word;background:#fee500;border-top-right-radius:4px}
+.mr .meta{display:flex;flex-direction:column;align-items:flex-end;font-size:10px;color:#4a5a69;line-height:1.25}
+.mr .meta .un{color:#f2c500;font-weight:700;font-size:11px;color:#e6b800}
+.mr.oth{align-items:flex-start}
+.mr.oth .bb{background:#fff;border-radius:14px;border-top-left-radius:4px}
+.mr.oth .bw{display:flex;align-items:flex-end;gap:5px}
+.mr.oth .nm{font-size:12px;color:#333;margin:0 0 3px 2px}
+.mr.oth .tm{font-size:10px;color:#4a5a69}
+.ci{flex:none;display:flex;align-items:center;gap:10px;padding:8px 12px 32px;background:#fff}
+.ci .pl{font-size:24px;color:#777;width:28px;text-align:center}
+.ci input{flex:1;background:#f2f2f2;border-radius:18px;height:36px;padding:0 14px;font-size:15px;-webkit-user-select:text;user-select:text}
+.ci .sd{width:36px;height:36px;border-radius:18px;background:#eee;color:#aaa;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700}
+.ci .sd.on{background:#fee500;color:#000}
+
+/* x */
+#x{background:#000;color:#e7e9ea}
+.xh{flex:none;padding:50px 14px 8px;display:flex;align-items:center;gap:22px}
+.xh .bk{font-size:24px}
+.xh b{font-size:18px;display:block;line-height:1.2}
+.xh span{font-size:12px;color:#71767b}
+.ban{height:104px;background:linear-gradient(120deg,#3a2c52,#16324a 60%,#0f1d2b)}
+.xp{padding:0 16px}
+.xp .row{display:flex;justify-content:space-between;align-items:flex-end;margin-top:-36px}
+.xp .row .av{border:3px solid #000;border-radius:50%}
+.xp .fl{border:1px solid #536471;border-radius:20px;padding:6px 16px;font-size:14px;font-weight:700;margin-bottom:4px}
+.xp .n{font-size:20px;font-weight:800;margin-top:8px;display:flex;align-items:center;gap:6px}
+.xp .hd{color:#71767b;font-size:14px}
+.xp .bio{margin-top:10px;font-size:15px;line-height:1.35;white-space:pre-line}
+.xp .stat{margin:10px 0 12px;font-size:14px;color:#71767b}
+.xp .stat b{color:#e7e9ea}
+.xt{display:flex;border-bottom:.5px solid #2f3336;font-size:15px;color:#71767b;font-weight:600}
+.xt div{flex:1;text-align:center;padding:14px 0;position:relative}
+.xt .a{color:#e7e9ea}
+.xt .a::after{content:"";position:absolute;bottom:0;left:30%;right:30%;height:4px;border-radius:2px;background:#1d9bf0}
+.tw{display:flex;gap:11px;padding:12px 16px;border-bottom:.5px solid #2f3336}
+.tw .b{flex:1;min-width:0}
+.tw .t1{font-size:15px;display:flex;gap:4px;align-items:center;flex-wrap:wrap}
+.tw .t1 b{font-weight:700}.tw .t1 span{color:#71767b}
+.tw .tx{font-size:15px;line-height:1.4;margin-top:2px;white-space:pre-line;word-break:break-word}
+.tw .eg{display:flex;justify-content:space-between;margin-top:12px;color:#71767b;font-size:13px;max-width:340px}
+.xnav{flex:none;display:flex;justify-content:space-around;padding:10px 0 32px;border-top:.5px solid #2f3336;background:#000;font-size:22px;color:#e7e9ea}
+.lk{width:15px;height:15px;fill:#e7e9ea}
+
+/* instagram */
+#igcall{background:#000;align-items:center;text-align:center}
+#igcall .av{margin-top:auto;animation:breathe 2.2s ease-in-out infinite}
+@keyframes breathe{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(255,255,255,.18)}50%{transform:scale(1.06);box-shadow:0 0 0 22px rgba(255,255,255,0)}}
+#igcall .cn{font-size:26px;font-weight:600;margin-top:22px}
+#igcall .cs{font-size:15px;color:#a8a8a8;margin-top:6px}
+#igcall .ci2{font-size:14px;color:#8e8e8e;margin-top:4px;animation:blink 1.6s infinite}
+@keyframes blink{50%{opacity:.4}}
+#igcall .bt{margin-top:auto;margin-bottom:96px;display:flex;gap:90px}
+.rb{width:68px;height:68px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.rb svg{width:30px;height:30px}
+.rb.red{background:#ff3040}.rb.grn{background:#2bd36b}
+.rb.red svg{transform:rotate(135deg)}
+.rb:active{transform:scale(.94)}
+#igvideo{background:#111}
+#igvideo .bg{position:absolute;inset:0;background:linear-gradient(160deg,#3b2a55,#7a3b6e 50%,#d1604f)}
+#mainv{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+#igvideo .sh{position:absolute;left:0;right:0;pointer-events:none}
+#igvideo .sh.t{top:0;height:140px;background:linear-gradient(rgba(0,0,0,.5),transparent)}
+#igvideo .sh.b{bottom:0;height:340px;background:linear-gradient(transparent,rgba(0,0,0,.6))}
+#igvideo .tt{position:absolute;top:54px;left:0;right:0;text-align:center;text-shadow:0 1px 6px rgba(0,0,0,.5);z-index:3;pointer-events:none}
+#igvideo .tt b{font-size:17px;font-weight:600;display:block}
+#igvideo .tt span{font-size:13px;opacity:.9;font-variant-numeric:tabular-nums}
+#pip{position:absolute;top:104px;right:14px;width:104px;height:156px;border-radius:16px;overflow:hidden;z-index:6;background:linear-gradient(160deg,#2c3e60,#1a1f33);border:1.5px solid rgba(255,255,255,.35);box-shadow:0 6px 20px rgba(0,0,0,.4);touch-action:none;cursor:grab}
+#pip video{width:100%;height:100%;object-fit:cover;pointer-events:none}
+#pip.m video{transform:scaleX(-1)}
+#igchat{position:absolute;left:14px;bottom:176px;width:72%;display:flex;flex-direction:column;gap:6px;z-index:5;pointer-events:none}
+#igchat .msg{font-size:14.5px;line-height:1.35;text-shadow:0 1px 5px rgba(0,0,0,.7);opacity:0;transform:translateY(8px);transition:opacity .5s,transform .5s;word-break:break-word}
+#igchat .msg.s{opacity:1;transform:none}
+#igchat .msg.f{opacity:0;transition:opacity 1.2s}
+#igchat .msg b{font-weight:700;margin-right:6px}
+#igctl{position:absolute;left:0;right:0;bottom:84px;display:flex;justify-content:center;gap:18px;z-index:5}
+.cb{width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,.22);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);display:flex;align-items:center;justify-content:center}
+.cb svg{width:26px;height:26px}
+.cb.off{background:#fff;color:#000}
+.cb.red{background:#ff3040}.cb.red svg{transform:rotate(135deg)}
+#igin{position:absolute;left:14px;right:14px;bottom:30px;z-index:5;height:44px;border-radius:22px;border:1px solid rgba(255,255,255,.6);display:flex;align-items:center;padding:0 16px;gap:8px}
+#igin input{flex:1;font-size:15px;-webkit-user-select:text;user-select:text}
+#igin input::placeholder{color:rgba(255,255,255,.75)}
+#igin button{font-size:15px;font-weight:600;color:#6cb6ff;opacity:0}
+#igin.h button{opacity:1}
+
+/* spotify */
+#sp{background:linear-gradient(180deg,#3a3a46 0,#121212 340px,#121212);color:#fff}
+.sph{flex:none;padding:50px 16px 0;font-size:26px;font-weight:300}
+.cover{border-radius:6px;overflow:hidden;background:linear-gradient(135deg,#3c3c4a,#15151b);display:flex;align-items:center;justify-content:center;box-shadow:0 10px 30px rgba(0,0,0,.45);flex:none}
+.cover img{width:100%;height:100%;object-fit:cover}
+.cover svg{width:34%;height:34%;fill:#9a9aa8}
+.spc{display:flex;justify-content:center;padding:6px 0 18px}
+.spt{padding:0 16px}
+.spt h2{font-size:22px;font-weight:800;letter-spacing:-.3px}
+.spt p{font-size:13px;color:#b3b3b3;margin-top:6px}
+.spt p b{color:#fff}
+.spb{display:flex;align-items:center;padding:14px 16px 8px;gap:22px}
+.spb svg{width:24px;height:24px;stroke:#b3b3b3;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.spb .sp{flex:1}
+.pbig{width:54px;height:54px;border-radius:50%;background:#1db954;display:flex;align-items:center;justify-content:center}
+.pbig svg{width:26px;height:26px;fill:#000;stroke:none}
+.sr{display:flex;align-items:center;padding:9px 16px;gap:10px;cursor:pointer}
+.sr .m{flex:1;min-width:0}
+.sr .a{font-size:16px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sr .b{font-size:13px;color:#b3b3b3;margin-top:2px}
+.sr.p .a{color:#1db954}
+.sr .dots{color:#b3b3b3;font-size:20px;letter-spacing:1px}
+.eq{display:none;gap:2px;align-items:flex-end;height:14px}
+.sr.p .eq{display:flex}
+.eq i{width:3px;background:#1db954;animation:eq .9s infinite ease-in-out;height:4px}
+.eq i:nth-child(2){animation-delay:.2s}.eq i:nth-child(3){animation-delay:.4s}
+.paused .eq i{animation-play-state:paused}
+@keyframes eq{0%,100%{height:3px}50%{height:14px}}
+#mini{position:absolute;left:8px;right:8px;bottom:36px;height:58px;border-radius:10px;background:#3b3b46;display:none;align-items:center;gap:10px;padding:0 12px 0 8px;z-index:20;overflow:hidden;cursor:pointer}
+#mini.on{display:flex}
+#mini .m{flex:1;min-width:0}
+#mini .a{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#mini .b{font-size:12px;color:#c4c4cc;margin-top:1px}
+#mini .pb{width:36px;height:36px;display:flex;align-items:center;justify-content:center}
+#mini .pb svg,.ct svg{fill:#fff}
+#mini .pb svg{width:26px;height:26px}
+#mini .bar{position:absolute;left:10px;right:10px;bottom:3px;height:2px;background:rgba(255,255,255,.25);border-radius:1px}
+#mini .bar i{display:block;height:100%;background:#fff;border-radius:1px;width:0}
+#spplayer{z-index:45;background:linear-gradient(180deg,#4a4a5c,#1a1a22 70%,#121212);transform:translateY(100%);transition:transform .32s cubic-bezier(.3,.8,.3,1);display:flex;padding:0 24px}
+#spplayer.on{transform:none}
+#spplayer .tp{padding-top:52px;display:flex;justify-content:space-between;align-items:center;font-size:12px;text-align:center}
+#spplayer .tp b{display:block;font-size:13px;margin-top:2px}
+#spplayer .tp .cv{font-size:24px;font-weight:300;width:28px}
+#spplayer .cvr{margin:auto 0;display:flex;justify-content:center}
+#spplayer .ti{display:flex;flex-direction:column}
+#spplayer .ti b{font-size:22px;font-weight:800}
+#spplayer .ti span{font-size:15px;color:#b3b3b3;margin-top:4px}
+.prg{margin-top:22px}
+.prg input{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:2px;background:linear-gradient(to right,#fff var(--p,0%),rgba(255,255,255,.28) var(--p,0%));outline:none;display:block}
+.prg input::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:#fff}
+.prg input::-moz-range-thumb{width:12px;height:12px;border:0;border-radius:50%;background:#fff}
+.prg .tt{display:flex;justify-content:space-between;font-size:11.5px;color:#b3b3b3;margin-top:8px;font-variant-numeric:tabular-nums}
+.ct{display:flex;justify-content:space-between;align-items:center;margin:18px 0 78px}
+.ct button{width:44px;height:44px;display:flex;align-items:center;justify-content:center;position:relative}
+.ct svg{width:28px;height:28px}
+.ct .sh svg,.ct .rp svg{width:24px;height:24px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;opacity:.75}
+.ct .sh.on svg,.ct .rp.on svg{stroke:#1db954;opacity:1}
+.ct .sh.on::after,.ct .rp.on::after{content:"";position:absolute;bottom:2px;width:4px;height:4px;border-radius:50%;background:#1db954}
+.ct .pl{width:68px;height:68px;border-radius:50%;background:#fff}
+.ct .pl svg{fill:#000;width:30px;height:30px}
+.one{position:absolute;font-size:8px;font-weight:800;color:#1db954;top:15px}
+</style>
+</head>
+<body>
+<div id="phone"></div>
+
+<script>
+/* =====================================================
+   ✏️ 以后只需要改这里 / 앞으로는 여기만 수정하세요
+   ===================================================== */
+const CONFIG = {
+  wallpaper: "",                 // 图片地址或 base64(留空=默认渐变)
+  userName: "서하",
+  contactName: "지안",
+  userAvatar: "",                // 可选:我的头像
+  contactAvatar: "",             // 可选:对方头像
+  statusMsg: "오늘도 무사히 🌙",   // KakaoTalk 상태메시지
+  twitterHandle: "seoha_0317",
+  twitterBio: "밤에 더 말 많은 사람 🌙\n좋아하는 것만 적어둠",
+  twitterFollowing: "87",
+  twitterFollowers: "64",
+  weather: { place: "서울", temp: "18°", desc: "맑음", high: "21°", low: "11°" },
+  events: [
+    { time: "14:00", title: "지안이랑 카페" },
+    { time: "21:30", title: "영상통화 약속" }
+  ],
+  calls: [
+    { group: "오늘", items: [
+      { type: "未接", time: "오전 1:12", count: "3" },
+      { type: "收",   time: "오전 12:40", count: "" }
+    ]},
+    { group: "어제", items: [
+      { type: "发",   time: "오후 11:05", count: "" },
+      { type: "收",   time: "오후 8:21", count: "" },
+      { type: "未接", time: "오후 3:47", count: "2" }
+    ]},
+    { group: "10월 23일", items: [
+      { type: "发",   time: "오후 10:30", count: "" }
+    ]}
+  ],
+  // from 생략=내가 보낸 말풍선(노란색,오른쪽) / from:"对方" = 상대(흰색,왼쪽)
+  chat: [
+    { time: "오후 11:38", text: "자?" },
+    { time: "오후 11:38", text: "아직 안 잘 거면 잠깐만 통화하자" },
+    { from: "对方", time: "오후 11:40", text: "안 자고 있었지 ㅋㅋ 전화 걸까?" },
+    { time: "오후 11:41", text: "응응 걸어줘" },
+    { time: "오후 11:41", text: "오늘 하루종일 네 생각했어 🥹" },
+    { time: "오후 11:42", text: "내일 만나면 제일 먼저 안아줄게" }
+  ],
+  tweets: [
+    "새벽 두 시에 갑자기 네 목소리 듣고 싶어지는 거 반칙 아님?",
+    "오늘의 결론: 좋아하는 사람이 있으면 월요일도 버틸 만하다",
+    "비 오는 날 우산 하나로 같이 걷는 거\n이거 진짜 로망이었는데 🌧️",
+    "읽씹이 아니라 답장 쓰다가 지운 거예요 (3번째)",
+    "카페에서 시킨 음료 사진 찍는 척하고 사실 맞은편 사람 찍음",
+    "잠 안 오는 밤엔 플레이리스트가 약이다 🎧"
+  ],
+  instagram: {
+    callerName: "jian_0912",
+    avatar: "",                  // 可选:来电头像(没有就用首字母)
+    video: "call.mp4",           // 对方的画面
+    selfVideo: "me.mp4",         // 右上角小窗:我的画面
+    messages: [                  // delay = 距离上一条的秒数
+      { from: "对方", text: "드디어 연결됐다 ㅋㅋ 보고 싶었어", delay: 2 },
+      { from: "我",   text: "나도!! 얼굴 보니까 이제 좀 살겠다", delay: 4 },
+      { from: "对方", text: "오늘 뭐했어? 밥은 먹었고?", delay: 5 },
+      { from: "我",   text: "너 기다리느라 아직 안 먹었지 😚", delay: 5 },
+      { from: "对方", text: "바보야 ㅋㅋㅋ 얼른 먹어", delay: 5 },
+      { from: "我",   text: "화면 속에서 자꾸 웃지 마, 심장 아파", delay: 6 },
+      { from: "对方", text: "그럼 더 웃어야지 😆", delay: 5 },
+      { from: "我",   text: "끊기 싫다… 오늘 밤엔 계속 켜놓자", delay: 6 },
+      { from: "对方", text: "좋아, 잘 때까지 같이 있어줄게 🌙", delay: 6 }
+    ]
+  },
+  spotify: {
+    playlistName: "새벽 세 시의 플레이리스트",
+    cover: "",                   // 可选:封面图片
+    songs: [
+      { title: "새벽 산책", artist: "이든", audio: "", duration: 212 },
+      { title: "우산 하나", artist: "하루", audio: "", duration: 187 },
+      { title: "네가 웃을 때", artist: "벨라", audio: "", duration: 236 }
+    ]
+  }
+};
+
+/* ===================== 아래는 수정 불필요 ===================== */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const br = s => esc(s).replace(/\n/g, "<br>");
+const DAYS = ["일", "월", "화", "수", "목", "금", "토"];
+const pad = n => String(n).padStart(2, "0");
+function av(src, name, px, extra = "") {
+  const ini = esc((name || "?").trim().charAt(0).toUpperCase());
+  return src
+    ? `<div class="av" style="width:${px}px;height:${px}px;${extra}"><img src="${esc(src)}" alt=""></div>`
+    : `<div class="av" style="width:${px}px;height:${px}px;font-size:${px * .42}px;${extra}">${ini}</div>`;
+}
+const SB = (c = "#fff") => `<div class="sb" style="color:${c}"><span class="clk"></span><span class="r">5G<span class="bat"></span></span></div>`;
+const HB = d => `<div class="hb ${d ? "d" : ""}" data-home></div>`;
+const I = {
+  phone: '<svg viewBox="0 0 24 24" fill="#fff"><path d="M6.6 10.8a15 15 0 006.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1A17 17 0 013 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1z"/></svg>',
+  kakao: '<svg viewBox="0 0 24 24" fill="#3c1e1e"><ellipse cx="12" cy="11" rx="9.5" ry="7.5"/><path d="M8 17l-1.2 4.2 5.2-3.2z"/></svg>',
+  msg: '<svg viewBox="0 0 24 24" fill="#fff"><path d="M12 3C6.5 3 2 6.6 2 11c0 2.5 1.4 4.7 3.6 6.1L4.5 21l4.1-2.1c1.1.3 2.2.4 3.4.4 5.5 0 10-3.6 10-8S17.500 3 12 3z"/></svg>',
+  yt: '<svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="4" fill="#fff"/><path d="M10 9l5 3-5 3z" fill="#f00"/></svg>',
+  sp: '<svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.2" stroke-linecap="round"><path d="M5 9c5-1.5 10-1 14 1.5M6 13c4-1 8-.7 11 1.2M7 16.8c3-.7 6-.4 8.4.9"/></svg>',
+  ig: '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="#fff"/></svg>',
+  lock: '<svg class="lk" viewBox="0 0 24 24"><path d="M17 9h-1V7a4 4 0 00-8 0v2H7a2 2 0 00-2 2v8a2 2 0 002 2h10a2 2 0 002-2v-8a2 2 0 00-2-2zm-7-2a2 2 0 014 0v2h-4z"/></svg>',
+  mic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg>',
+  cam: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="14" height="12" rx="3"/><path d="M16 10l6-3v10l-6-3"/></svg>',
+  flip: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h14l-3.500-3.500M20 15H6l3.500 3.500"/></svg>',
+  play: '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>',
+  pause: '<svg viewBox="0 0 24 24"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>',
+  next: '<svg viewBox="0 0 24 24"><path d="M6 5l9 7-9 7zM17 5h2v14h-2z"/></svg>',
+  prev: '<svg viewBox="0 0 24 24"><path d="M18 5l-9 7 9 7zM5 5h2v14H5z"/></svg>',
+  shuf: '<svg viewBox="0 0 24 24"><path d="M3 7h3c4 0 5 10 9 10h5M3 17h3c1.500 0 2.600-1.400 3.600-3M15 7h5M17 4l3 3-3 3M17 14l3 3-3 3"/></svg>',
+  rep: '<svg viewBox="0 0 24 24"><path d="M4 11V9a3 3 0 013-3h12l-3-3M20 13v2a3 3 0 01-3 3H5l3 3"/></svg>',
+  dl: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v8M8.500 12l3.500 3.500 3.500-3.500"/></svg>',
+  shr: '<svg viewBox="0 0 24 24"><path d="M12 3v12M7 8l5-5 5 5M5 14v5h14v-5"/></svg>',
+  more: '<svg viewBox="0 0 24 24" style="fill:#b3b3b3;stroke:none"><circle cx="5" cy="12" r="1.800"/><circle cx="12" cy="12" r="1.800"/><circle cx="19" cy="12" r="1.800"/></svg>',
+  note: '<svg viewBox="0 0 24 24"><path d="M9 3v12.500A3.500 3.500 0 106 12V6l12-3v10.500A3.500 3.500 0 1015 10V3z" transform="translate(0 1)"/></svg>'
+};
+const APPS = [
+  { id: "x", n: "X", bg: "#000", g: '<span style="color:#fff;font-size:30px;font-weight:700">𝕏</span>' },
+  { n: "YouTube", bg: "#ff0033", g: I.yt },
+  { id: "sp", n: "Spotify", bg: "#1db954", g: I.sp },
+  { id: "ig", n: "Instagram", bg: "linear-gradient(45deg,#fdc468,#f5576c 40%,#c13584 70%,#515bd4)", g: I.ig },
+  { n: "사진", bg: "linear-gradient(135deg,#fff,#f3e8ff)", g: "🌸" },
+  { n: "메모", bg: "linear-gradient(#ffd60a 22%,#fffbe6 22%)", g: '<span style="font-size:24px;margin-top:10px">📝</span>' },
+  { n: "지도", bg: "linear-gradient(135deg,#6fd08c,#4aa3f7)", g: "🗺️" },
+  { n: "설정", bg: "linear-gradient(135deg,#9a9aa0,#5b5b61)", g: "⚙️" }
+];
+const DOCK = [
+  { id: "phoneapp", n: "전화", bg: "#34c759", g: I.phone },
+  { id: "kakao", n: "KakaoTalk", bg: "#fee500", g: I.kakao },
+  { n: "메시지", bg: "#34c759", g: I.msg },
+  { n: "카메라", bg: "linear-gradient(135deg,#8e8e93,#48484a)", g: "📷" }
+];
+const iconHTML = a => `<div class="ic" ${a.id ? `data-open="${a.id}"` : ""}><div class="i" style="background:${a.bg}">${a.g}</div><span>${a.n}</span></div>`;
+
+/* ---------- build screens ---------- */
+const C = CONFIG, IG = C.instagram, SP = C.spotify;
+const wpCss = C.wallpaper ? `url("${C.wallpaper}")` : "linear-gradient(160deg,#f7b7d2 0%,#b9a2ff 45%,#6ec1ff 100%)";
+const xName = C.userName, xHandle = C.twitterHandle.replace(/^@/, "");
+$("#phone").innerHTML = `
+<section class="screen on" id="lock"><div class="wp" style="background:${wpCss};background-size:cover;background-position:center"></div>${SB()}
+  <div class="lt"><div class="d" id="ldate"></div><div class="t" id="ltime"></div></div>
+  <div class="btm"><div class="cir glass">🔦</div><div class="cir glass">📷</div></div><div class="hb"></div></section>
+
+<section class="screen" id="home"><div class="wp" style="background:${wpCss};background-size:cover;background-position:center"></div>${SB()}
+  <div class="wg">
+    <div class="w glass"><div class="pl">${esc(C.weather.place)} ➤</div><div class="tp">${esc(C.weather.temp)}</div><div class="ds">${esc(C.weather.desc)}</div><div class="hl">최고:${esc(C.weather.high)} 최저:${esc(C.weather.low)}</div></div>
+    <div class="w glass"><div class="hd2">일정</div>${C.events.slice(0, 2).map(e => `<div class="ev"><i></i><div><b>${esc(e.title)}</b><span>${esc(e.time)}</span></div></div>`).join("")}</div>
+  </div>
+  <div class="grid">${APPS.map(iconHTML).join("")}</div>
+  <div class="dock glass">${DOCK.map(iconHTML).join("")}</div></section>
+
+<section class="screen" id="phoneapp">${SB("#000")}
+  <div class="top"><span>편집</span><div class="seg"><span class="a">전체</span><span>부재중</span></div><span style="width:30px"></span></div>
+  <div class="grow"><h1>최근 통화</h1><div id="calls"></div><div style="height:30px"></div></div>
+  <div class="tabs"><div><b>★</b>즐겨찾기</div><div class="a"><b>◷</b>최근 통화</div><div><b>☺</b>연락처</div><div><b>⌗</b>키패드</div></div>${HB(1)}</section>
+
+<section class="screen" id="kakao">${SB("#000")}
+  <div class="kh"><h1>친구</h1><div class="ico"><span>⌕</span><span>☺</span><span>⚙</span></div></div>
+  <div class="grow"><div class="ksr">이름, 전화번호 검색</div><div id="kme"></div><div class="ksec" id="kcnt"></div><div id="kfr"></div></div>
+  <div class="ktab"><div class="a"><b>☺</b>친구</div><div><b>◔</b>채팅</div><div><b>◎</b>오픈채팅</div><div><b>◈</b>쇼핑</div><div><b>⋯</b>더보기</div></div>${HB(1)}</section>
+
+<section class="screen" id="kprofile">${SB()}<div class="x" id="kpclose">✕</div>
+  <div class="big">${av(C.userAvatar, C.userName, 130, "border-radius:50px")}</div>
+  <div class="pn">${esc(C.userName)}</div><div class="ps">${esc(C.statusMsg)}</div>
+  <div class="ac"><div><b>💬</b>나와의 채팅</div><div><b>✎</b>프로필 편집</div><div><b>🎞</b>카카오스토리</div></div>${HB()}</section>
+
+<section class="screen" id="kchat">${SB("#000")}
+  <div class="ch"><span class="bk" id="kback">‹</span><span>${esc(C.contactName)}</span><span class="rt"><span>⌕</span><span>☰</span></span></div>
+  <div class="grow" id="kscroll"><div class="msgs" id="kmsgs"></div></div>
+  <div class="ci"><span class="pl">+</span><input id="kin" placeholder="" autocomplete="off"><div class="sd" id="ksend">↑</div></div>${HB(1)}</section>
+
+<section class="screen" id="x">${SB()}
+  <div class="xh"><span class="bk" data-home>←</span><div><b>${esc(xName)}</b><span>게시물 ${C.tweets.length}개</span></div></div>
+  <div class="grow">
+    <div class="ban"></div>
+    <div class="xp"><div class="row">${av(C.userAvatar, xName, 78)}<div class="fl">팔로잉</div></div>
+      <div class="n">${esc(xName)} ${I.lock}</div><div class="hd">@${esc(xHandle)}</div>
+      <div class="bio">${br(C.twitterBio)}</div>
+      <div class="stat"><b>${esc(C.twitterFollowing)}</b> 팔로잉 &nbsp; <b>${esc(C.twitterFollowers)}</b> 팔로워</div></div>
+    <div class="xt"><div class="a">게시물</div><div>답글</div><div>미디어</div><div>마음에 들어요</div></div>
+    <div id="tws"></div><div style="height:30px"></div></div>
+  <div class="xnav"><span>⌂</span><span>⌕</span><span>◫</span><span>🔔</span><span>✉</span></div>${HB()}</section>
+
+<section class="screen" id="igcall">${SB()}
+  ${av(IG.avatar, IG.callerName, 128)}
+  <div class="cn">${esc(IG.callerName)}</div><div class="cs">Instagram 비디오 통화</div><div class="ci2">수신 중…</div>
+  <div class="bt"><div class="rb red" id="igdecl">${I.phone}</div><div class="rb grn" id="igacc">${I.cam.replace('stroke="currentColor"', 'stroke="#fff"')}</div></div>${HB()}</section>
+
+<section class="screen" id="igvideo"><div class="bg"></div><video id="mainv" playsinline webkit-playsinline muted loop autoplay></video>
+  <div class="sh t"></div><div class="sh b"></div>${SB()}
+  <div class="tt"><b>${esc(IG.callerName)}</b><span id="igtime">00:00</span></div>
+  <div id="pip"><video id="selfv" playsinline webkit-playsinline muted loop autoplay></video></div>
+  <div id="igchat"></div>
+  <div id="igctl"><div class="cb" id="bflip">${I.flip}</div><div class="cb" id="bmic">${I.mic}</div><div class="cb" id="bcam">${I.cam}</div><div class="cb red" id="bend">${I.phone}</div></div>
+  <form id="igin"><input id="igtxt" placeholder="메시지 보내기…" autocomplete="off"><button type="submit">보내기</button></form>${HB()}</section>
+
+<section class="screen" id="sp">${SB()}
+  <div class="sph" data-home>‹</div>
+  <div class="grow" id="splist" style="padding-bottom:140px">
+    <div class="spc"><div class="cover" style="width:220px;height:220px">${SP.cover ? `<img src="${esc(SP.cover)}">` : I.note}</div></div>
+    <div class="spt"><h2>${esc(SP.playlistName)}</h2><p><b>${esc(C.userName)}</b> · ${SP.songs.length}곡</p></div>
+    <div class="spb">${["dl", "shr"].map(k => I[k]).join("")}<span style="width:24px;height:24px;display:block">${I.more}</span><span class="sp"></span>
+      <svg viewBox="0 0 24 24" id="spshuf0">${I.shuf.replace(/<\/?svg[^>]*>/g, "")}</svg><div class="pbig" id="spbig">${I.play}</div></div>
+    <div id="songs"></div></div>
+  <div id="mini"><div class="cover" id="mcov" style="width:42px;height:42px;border-radius:5px;box-shadow:none"></div>
+    <div class="m"><div class="a" id="mt"></div><div class="b" id="ma"></div></div><div class="pb" id="mpb"></div><div class="bar"><i id="mbar"></i></div></div>${HB()}</section>
+
+<section class="screen" id="spplayer">${SB()}
+  <div class="tp"><span class="cv" id="spclose">⌄</span><div style="opacity:.8">재생 중인 플레이리스트<b>${esc(SP.playlistName)}</b></div><span class="cv" style="text-align:right">⋯</span></div>
+  <div class="cvr"><div class="cover" id="pcov" style="width:min(300px,76vw);height:min(300px,76vw)"></div></div>
+  <div class="ti"><b id="pt"></b><span id="pa"></span></div>
+  <div class="prg"><input type="range" id="prange" min="0" max="100" step="0.1" value="0"><div class="tt"><span id="pcur">0:00</span><span id="pdur">0:00</span></div></div>
+  <div class="ct"><button class="sh" id="pshuf">${I.shuf}</button><button id="pprev">${I.prev}</button><button class="pl" id="pplay"></button><button id="pnext">${I.next}</button><button class="rp" id="prep">${I.rep}<span class="one" id="pone"></span></button></div>${HB()}</section>`;
+
+/* ---------- navigation ---------- */
+const screens = $$(".screen");
+function go(id) {
+  screens.forEach(s => s.classList.remove("on", "pop"));
+  const el = $("#" + id); el.classList.add("on");
+  if (id !== "home") { el.classList.add("pop"); }
+  $("#kprofile").classList.remove("on"); $("#spplayer").classList.remove("on");
+}
+function goHome() { endCall(); go("home"); }
+$$("[data-home]").forEach(e => e.addEventListener("click", goHome));
+$$("[data-open]").forEach(e => e.addEventListener("click", () => {
+  const id = e.dataset.open;
+  if (id === "ig") { go("igcall"); } else go(id);
+}));
+$$(".screen").forEach(s => { if (s.id !== "lock") $$(".hb", s).forEach(h => h.addEventListener("click", goHome)); });
+
+/* ---------- clock ---------- */
+function tick() {
+  const d = new Date(), h12 = d.getHours() % 12 || 12, t = `${h12}:${pad(d.getMinutes())}`;
+  $$(".clk").forEach(e => e.textContent = t);
+  $("#ltime").textContent = t;
+  $("#ldate").textContent = `${d.getMonth() + 1}월 ${d.getDate()}일 ${DAYS[d.getDay()]}요일`;
+}
+tick(); setInterval(tick, 1000);
+
+/* ---------- lock ---------- */
+(function () {
+  const lock = $("#lock"); let sy = null, onBar = false;
+  lock.addEventListener("pointerdown", e => { sy = e.clientY; onBar = !!e.target.closest(".hb"); lock.setPointerCapture(e.pointerId); lock.style.transition = "none"; });
+  lock.addEventListener("pointermove", e => { if (sy == null) return; const d = Math.min(0, e.clientY - sy); lock.style.transform = `translateY(${d}px)`; });
+  lock.addEventListener("pointerup", e => {
+    if (sy == null) return; const d = e.clientY - sy; sy = null; lock.style.transition = "";
+    if (d < -90 || (onBar && Math.abs(d) < 10)) unlock(); else lock.style.transform = "";
+  });
+  lock.addEventListener("pointercancel", () => { sy = null; lock.style.transition = ""; lock.style.transform = ""; });
+  function unlock() {
+    $("#home").classList.add("on");
+    lock.style.transform = "translateY(-105%)";
+    setTimeout(() => { lock.classList.remove("on"); lock.style.transform = ""; }, 360);
+  }
+})();
+
+/* ---------- phone app ---------- */
+$("#calls").innerHTML = C.calls.map(g => `<div class="cg">${esc(g.group)}</div><div class="cl">${g.items.map(it => {
+  const t = String(it.type), miss = t.includes("未"), out = t.includes("发");
+  const cnt = it.count && +it.count > 1 ? ` (${esc(it.count)})` : "";
+  return `<div class="cr"><div class="m"><div class="n ${miss ? "red" : ""}">${esc(C.contactName)}${cnt}</div><div class="s">${out ? "↗ " : ""}휴대전화</div></div><div class="tm">${esc(it.time)}</div><div class="inf">i</div></div>`;
+}).join("")}</div>`).join("");
+
+/* ---------- kakao ---------- */
+$("#kme").innerHTML = `<div class="kr me" id="kmeRow">${av(C.userAvatar, C.userName, 54, "border-radius:20px")}<div><div class="nm" style="font-size:16px;font-weight:600">${esc(C.userName)}</div><div class="st">${esc(C.statusMsg)}</div></div></div>`;
+const friends = [{ n: C.contactName, a: C.contactAvatar, chat: true, s: "" }];
+$("#kcnt").textContent = `친구 ${friends.length}`;
+$("#kfr").innerHTML = friends.map((f, i) => `<div class="kr" data-f="${i}">${av(f.a, f.n, 46, "border-radius:18px")}<div><div class="nm">${esc(f.n)}</div></div></div>`).join("");
+$("#kmeRow").addEventListener("click", () => $("#kprofile").classList.add("on"));
+$("#kpclose").addEventListener("click", () => $("#kprofile").classList.remove("on"));
+$$("[data-f]").forEach(e => e.addEventListener("click", () => { go("kchat"); scrollChat(); }));
+$("#kback").addEventListener("click", () => go("kakao"));
+
+function ktime(d) { const h = d.getHours(); return `${h < 12 ? "오전" : "오후"} ${h % 12 || 12}:${pad(d.getMinutes())}`; }
+const kmsgs = $("#kmsgs"), kscroll = $("#kscroll");
+function scrollChat() { requestAnimationFrame(() => kscroll.scrollTop = kscroll.scrollHeight); }
+function addBubble(m) {
+  const other = /对方|other|contact/i.test(m.from || ""), el = document.createElement("div");
+  if (other) {
+    el.className = "mr oth";
+    el.innerHTML = `${av(C.contactAvatar, C.contactName, 36, "border-radius:14px")}<div><div class="nm">${esc(C.contactName)}</div><div class="bw"><div class="bb">${br(m.text)}</div><span class="tm">${esc(m.time)}</span></div></div>`;
+  } else {
+    el.className = "mr mine";
+    el.innerHTML = `<div class="meta"><span class="un">1</span><span>${esc(m.time)}</span></div><div class="bb">${br(m.text)}</div>`;
+  }
+  kmsgs.appendChild(el);
+}
+const nowD = new Date();
+kmsgs.insertAdjacentHTML("beforebegin", `<div style="display:flex;justify-content:center"><div class="cdate">${nowD.getFullYear()}년 ${nowD.getMonth() + 1}월 ${nowD.getDate()}일 ${DAYS[nowD.getDay()]}요일</div></div>`);
+C.chat.forEach(addBubble);
+const kin = $("#kin");
+function ksend() { const t = kin.value.trim(); if (!t) return; addBubble({ time: ktime(new Date()), text: t }); kin.value = ""; $("#ksend").classList.remove("on"); scrollChat(); }
+kin.addEventListener("input", () => $("#ksend").classList.toggle("on", !!kin.value.trim()));
+kin.addEventListener("keydown", e => { if (e.key === "Enter" && !e.isComposing) ksend(); });
+$("#ksend").addEventListener("click", ksend);
+
+/* ---------- X ---------- */
+$("#tws").innerHTML = C.tweets.map((tw, i) => {
+  const o = typeof tw === "string" ? { text: tw } : tw, d = new Date(Date.now() - (i * 1.4 + 0.3) * 864e5);
+  const s = (i + 3) * 37, re = s * 7 % 40, rt = s * 3 % 25, lk = s * 13 % 300 + 20, vw = lk * 9 + s;
+  return `<div class="tw">${av(C.userAvatar, xName, 40)}<div class="b"><div class="t1"><b>${esc(xName)}</b>${I.lock}<span>@${esc(xHandle)} · ${esc(o.date || `${d.getMonth() + 1}월 ${d.getDate()}일`)}</span></div>
+  <div class="tx">${br(o.text)}</div><div class="eg"><span>💬 ${re}</span><span>🔁 ${rt}</span><span>♡ ${lk}</span><span>📊 ${vw}</span><span>⇪</span></div></div></div>`;
+}).join("");
+
+/* ---------- Instagram call ---------- */
+let cTimers = [], cTick = null, cSec = 0, needTap = false;
+const mainv = $("#mainv"), selfv = $("#selfv");
+function startCall() {
+  go("igvideo"); cSec = 0; $("#igtime").textContent = "00:00"; $("#igchat").innerHTML = "";
+  $("#bmic").classList.remove("off"); $("#bcam").classList.remove("off"); $("#pip").style.display = "";
+  if (IG.video) { mainv.src = IG.video; mainv.muted = false; mainv.play().catch(() => { mainv.muted = true; needTap = true; mainv.play().catch(() => {}); }); }
+  if (IG.selfVideo) { selfv.src = IG.selfVideo; selfv.muted = true; selfv.play().catch(() => {}); } else $("#pip").style.display = "none";
+  cTick = setInterval(() => { cSec++; $("#igtime").textContent = `${pad(Math.floor(cSec / 60))}:${pad(cSec % 60)}`; }, 1000);
+  let t = 0;
+  IG.messages.forEach(m => { t += (m.delay ?? 3); cTimers.push(setTimeout(() => igMsg(/对方|other/i.test(m.from || "") ? IG.callerName : "나", m.text), t * 1000)); });
+}
+function igMsg(name, text) {
+  const box = $("#igchat"), el = document.createElement("div"); el.className = "msg";
+  el.innerHTML = `<b>${esc(name)}</b>${esc(text)}`; box.appendChild(el);
+  while (box.children.length > 5) box.firstChild.remove();
+  requestAnimationFrame(() => el.classList.add("s"));
+  setTimeout(() => el.classList.add("f"), 6500);
+  setTimeout(() => el.remove(), 7800);
+}
+function endCall() {
+  cTimers.forEach(clearTimeout); cTimers = []; clearInterval(cTick); cTick = null; needTap = false;
+  [mainv, selfv].forEach(v => { v.pause(); v.removeAttribute("src"); v.load(); });
+  $("#igchat").innerHTML = "";
+}
+$("#igacc").addEventListener("click", startCall);
+$("#igdecl").addEventListener("click", goHome);
+$("#bend").addEventListener("click", goHome);
+$("#igvideo").addEventListener("pointerdown", () => { if (needTap) { mainv.muted = false; mainv.play().catch(() => {}); needTap = false; } });
+$("#bmic").addEventListener("click", e => e.currentTarget.classList.toggle("off"));
+$("#bcam").addEventListener("click", e => { e.currentTarget.classList.toggle("off"); $("#pip").style.visibility = e.currentTarget.classList.contains("off") ? "hidden" : ""; });
+$("#bflip").addEventListener("click", () => $("#pip").classList.toggle("m"));
+const igtxt = $("#igtxt");
+igtxt.addEventListener("input", () => $("#igin").classList.toggle("h", !!igtxt.value.trim()));
+$("#igin").addEventListener("submit", e => { e.preventDefault(); const t = igtxt.value.trim(); if (!t) return; igMsg("나", t); igtxt.value = ""; $("#igin").classList.remove("h"); });
+// 小窗拖动
+(function () {
+  const pip = $("#pip"), box = $("#igvideo"); let d = null;
+  pip.addEventListener("pointerdown", e => {
+    const r = pip.getBoundingClientRect(), b = box.getBoundingClientRect();
+    d = { dx: e.clientX - r.left, dy: e.clientY - r.top, b }; pip.setPointerCapture(e.pointerId);
+    pip.style.left = r.left - b.left + "px"; pip.style.top = r.top - b.top + "px"; pip.style.right = "auto";
+  });
+  pip.addEventListener("pointermove", e => {
+    if (!d) return; const w = pip.offsetWidth, h = pip.offsetHeight;
+    pip.style.left = Math.max(6, Math.min(d.b.width - w - 6, e.clientX - d.b.left - d.dx)) + "px";
+    pip.style.top = Math.max(40, Math.min(d.b.height - h - 6, e.clientY - d.b.top - d.dy)) + "px";
+  });
+  const up = () => d = null; pip.addEventListener("pointerup", up); pip.addEventListener("pointercancel", up);
+})();
+
+/* ---------- Spotify ---------- */
+const songs = SP.songs, audio = new Audio();
+let idx = -1, playing = false, pos = 0, dur = 0, shuf = false, rep = 0, seeking = false, sim = null;
+const fmt = s => { s = Math.max(0, Math.floor(s || 0)); return `${Math.floor(s / 60)}:${pad(s % 60)}`; };
+const coverHTML = () => SP.cover ? `<img src="${esc(SP.cover)}">` : I.note;
+$("#songs").innerHTML = songs.map((s, i) => `<div class="sr" data-i="${i}"><div class="eq"><i></i><i></i><i></i></div><div class="m"><div class="a">${esc(s.title)}</div><div class="b">${esc(s.artist)}</div></div><div class="dots">⋯</div></div>`).join("");
+$("#mcov").innerHTML = coverHTML(); $("#pcov").innerHTML = coverHTML();
+$$(".sr").forEach(r => r.addEventListener("click", () => playSong(+r.dataset.i)));
+$("#spbig").addEventListener("click", () => { if (idx < 0) playSong(shuf ? Math.floor(Math.random() * songs.length) : 0); else toggle(); });
+$("#spshuf0").addEventListener("click", () => { shuf = true; playSong(Math.floor(Math.random() * songs.length)); });
+
+function playSong(i) {
+  idx = i; pos = 0; playing = true; const s = songs[i];
+  clearInterval(sim); sim = null;
+  if (s.audio) {
+    audio.src = s.audio; dur = s.duration || 0; audio.play().catch(() => { playing = false; render(); });
+  } else {
+    audio.removeAttribute("src"); dur = s.duration || 180; startSim();
+  }
+  render();
+}
+function startSim() { clearInterval(sim); sim = setInterval(() => { if (!playing || songs[idx]?.audio) return; pos += .25; if (pos >= dur) onEnd(); render(true); }, 250); }
+function toggle() {
+  if (idx < 0) return; playing = !playing; const s = songs[idx];
+  if (s.audio) playing ? audio.play().catch(() => {}) : audio.pause(); else if (playing) startSim();
+  render();
+}
+function nextIdx(auto) {
+  if (shuf && songs.length > 1) { let n; do { n = Math.floor(Math.random() * songs.length); } while (n === idx); return n; }
+  return (idx + 1) % songs.length;
+}
+function onEnd() {
+  if (rep === 2) { playSong(idx); return; }
+  const last = !shuf && idx === songs.length - 1;
+  if (last && rep === 0) { playing = false; pos = 0; clearInterval(sim); if (songs[idx].audio) audio.currentTime = 0; render(); return; }
+  playSong(nextIdx(true));
+}
+function next() { playSong(nextIdx(false)); }
+function prev() { if (pos > 3) { seek(0); } else playSong((idx - 1 + songs.length) % songs.length); }
+function seek(t) { pos = t; if (songs[idx]?.audio) audio.currentTime = t; render(); }
+audio.addEventListener("loadedmetadata", () => { if (isFinite(audio.duration)) dur = audio.duration; render(); });
+audio.addEventListener("timeupdate", () => { if (!seeking) pos = audio.currentTime; render(true); });
+audio.addEventListener("ended", onEnd);
+
+function render(light) {
+  const s = songs[idx], pct = dur ? Math.min(100, pos / dur * 100) : 0;
+  if (!light) {
+    $$(".sr").forEach((r, i) => r.classList.toggle("p", i === idx));
+    $("#splist").classList.toggle("paused", !playing);
+    $("#mini").classList.toggle("on", idx >= 0);
+    $("#mt").textContent = s ? s.title : ""; $("#ma").textContent = s ? s.artist : "";
+    $("#pt").textContent = s ? s.title : ""; $("#pa").textContent = s ? s.artist : "";
+    $("#mpb").innerHTML = playing ? I.pause : I.play; $("#pplay").innerHTML = playing ? I.pause : I.play;
+    $("#spbig").innerHTML = playing ? I.pause : I.play;
+    $("#pshuf").classList.toggle("on", shuf); $("#prep").classList.toggle("on", rep > 0); $("#pone").textContent = rep === 2 ? "1" : "";
+    $("#prange").max = dur || 100;
+  }
+  $("#mbar").style.width = pct + "%";
+  if (!seeking) { $("#prange").value = pos; }
+  $("#prange").style.setProperty("--p", (seeking ? $("#prange").value / ($("#prange").max || 1) * 100 : pct) + "%");
+  $("#pcur").textContent = fmt(seeking ? $("#prange").value : pos); $("#pdur").textContent = fmt(dur);
+}
+$("#mpb").addEventListener("click", e => { e.stopPropagation(); toggle(); });
+$("#mini").addEventListener("click", () => $("#spplayer").classList.add("on"));
+$("#spclose").addEventListener("click", () => $("#spplayer").classList.remove("on"));
+$("#pplay").addEventListener("click", toggle);
+$("#pnext").addEventListener("click", next);
+$("#pprev").addEventListener("click", prev);
+$("#pshuf").addEventListener("click", () => { shuf = !shuf; render(); });
+$("#prep").addEventListener("click", () => { rep = (rep + 1) % 3; render(); });
+const pr = $("#prange");
+pr.addEventListener("input", () => { seeking = true; render(true); });
+pr.addEventListener("change", () => { const v = +pr.value; seeking = false; seek(v); });
+render();
+</script>
+</body>
+</html>
